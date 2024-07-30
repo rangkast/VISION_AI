@@ -1,10 +1,10 @@
 import cv2
+print(cv2.__version__)
 import sys
-import mediapipe as mp
+
 import json
 import os
 import random
-
 from image_filter import *
 
 
@@ -23,9 +23,6 @@ ERROR = -1
 SUCCESS = 1
 
 CAM_DELAY = 1
-
-mp_hands = mp.solutions.hands
-mp_drawing = mp.solutions.drawing_utils
 
 # Define a global variable for the trackers
 trackers = cv2.legacy.MultiTracker_create()
@@ -80,7 +77,7 @@ def save_image_and_annotations(frame, rois):
         "annotations": annotations
     })
     image_count += 1
-    with open("annotations.json", "w") as f:
+    with open("labels.json", "w") as f:
         json.dump(annotation_data, f, indent=4)
 
 def get_label_color(label):
