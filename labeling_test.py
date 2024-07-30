@@ -44,7 +44,7 @@ def Rotate(src, degrees):
         dst = cv2.transpose(src)
         dst = cv2.flip(dst, 0)
     else:
-        dst = NOT_SET
+        dst = src
     return dst
 
 def draw_hand_bounding_box(image, hand_landmarks):
@@ -100,11 +100,11 @@ def camera_start():
         if not ret1:
             break
 
-        frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-
+        # frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
         filtered_img = add_image_filter(frame1)
 
-        rotate_img = Rotate(filtered_img, 270)
+        rotate_img = Rotate(filtered_img, 90)
+        rotate_img = cv2.resize(rotate_img, (960, 540))
 
         if tracking:
             success, boxes = trackers.update(rotate_img)
