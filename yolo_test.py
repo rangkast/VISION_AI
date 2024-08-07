@@ -13,7 +13,7 @@ import platform
 # YOLOv8 모델 로드
 model = YOLO('best.pt')
 
-CAM_1 = ["/dev/video0", "imgL"]
+CAM_1 = ["/dev/video5", "imgL"]
 
 CAP_PROP_FRAME_WIDTH = 1280
 CAP_PROP_FRAME_HEIGHT = 960
