@@ -6,9 +6,7 @@ import json
 import os
 import random
 from image_filter import *
-
-
-CAM_1 = ["/dev/video0", "imgL"]
+from common_functions import *
 
 CAP_PROP_FRAME_WIDTH = 1280
 CAP_PROP_FRAME_HEIGHT = 960
@@ -34,61 +32,9 @@ image_count = 0
 # Predefined colors for labels
 label_colors = {}
 
-def Rotate(src, degrees):
-    if degrees == 90:
-        dst = cv2.transpose(src)
-        dst = cv2.flip(dst, 1)
-    elif degrees == 180:
-        dst = cv2.flip(src, -1)
-    elif degrees == 270:
-        dst = cv2.transpose(src)
-        dst = cv2.flip(dst, 0)
-    else:
-        dst = src
-    return dst
-
-def draw_hand_bounding_box(image, hand_landmarks):
-    image_height, image_width, _ = image.shape
-    x_min, y_min = image_width, image_height
-    x_max, y_max = 0, 0
-
-    for landmark in hand_landmarks.landmark:
-        x, y = int(landmark.x * image_width), int(landmark.y * image_height)
-        x_min = min(x_min, x)
-        y_min = min(y_min, y)
-        x_max = max(x_max, x)
-        y_max = max(y_max, y)
-
-    cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 0, 255), 2)  # Red color
-
-def save_image_and_annotations(frame, rois):
-    global image_count
-    image_name = f"image_{image_count:04d}.jpg"
-    cv2.imwrite(image_name, frame)
-    annotations = []
-    for roi in rois:
-        x_min, y_min, w, h = [int(v) for v in roi['bbox']]
-        annotations.append({
-            "label": roi['label'],  # Save the label
-            "bbox": [x_min, y_min, x_min + w, y_min + h]
-        })
-    annotation_data["images"].append({
-        "file": image_name,
-        "annotations": annotations
-    })
-    image_count += 1
-    with open("labels.json", "w") as f:
-        json.dump(annotation_data, f, indent=4)
-
-def get_label_color(label):
-    if label not in label_colors:
-        label_colors[label] = [random.randint(0, 255) for _ in range(3)]
-    return label_colors[label]
-
 def camera_start():
     global trackers, rois, tracking
-
-    cap1 = cv2.VideoCapture('/dev/video0')
+    cap1 = cv2.VideoCapture('/dev/video5')
     width = cap1.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap1.get(cv2.CAP_PROP_FRAME_HEIGHT)
     print('cap1 size: %d, %d' % (width, height))
@@ -103,7 +49,7 @@ def camera_start():
         # frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
         filtered_img = add_image_filter(frame1)
 
-        rotate_img = Rotate(filtered_img, 90)
+        rotate_img = Rotate(filtered_img, 0)
         rotate_img = cv2.resize(rotate_img, (960, 540))
         draw_img = rotate_img.copy()
 
@@ -135,7 +81,7 @@ def camera_start():
         elif KEY == ord('s') and rois:  # 's' pressed, start tracking
             tracking = True
         elif KEY == ord('p') and tracking:  # 'p' pressed, save image and annotations
-            save_image_and_annotations(rotate_img, rois)
+            save_image_and_annotations(image_count, rotate_img, rois)
         elif KEY == ord('c'):  # 'c' pressed, clear all trackers
             trackers = cv2.legacy.MultiTracker_create()
             rois = []
@@ -143,6 +89,7 @@ def camera_start():
 
         cv2.imshow("video", draw_img)
         cv2.waitKey(CAM_DELAY)
+        image_count += 1
 
     cap1.release()
     cv2.destroyAllWindows()
