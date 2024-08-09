@@ -1,15 +1,13 @@
 import cv2
 print(cv2.__version__)
 import sys
-
 import json
 import os
 import random
 from image_filter import *
-from common_functions import *
 
-CAP_PROP_FRAME_WIDTH = 1280
-CAP_PROP_FRAME_HEIGHT = 960
+CAP_PROP_FRAME_WIDTH = 640
+CAP_PROP_FRAME_HEIGHT = 480
 
 ENABLE = 1
 DISABLE = 0
@@ -19,7 +17,6 @@ READ = 0
 WRITE = 1
 ERROR = -1
 SUCCESS = 1
-
 CAM_DELAY = 1
 
 # Define a global variable for the trackers
@@ -27,16 +24,67 @@ trackers = cv2.legacy.MultiTracker_create()
 rois = []
 tracking = False
 annotation_data = {"images": []}
-image_count = 0
 
 # Predefined colors for labels
 label_colors = {}
+
+def Rotate(src, degrees):
+     if degrees == 90:
+          dst = cv2.transpose(src)
+          dst = cv2.flip(dst, 1)
+     elif degrees == 180:
+          dst = cv2.flip(src, -1)
+     elif degrees == 270:
+          dst = cv2.transpose(src)
+          dst = cv2.flip(dst, 0)
+     else:
+          dst = src
+     return dst
+
+def draw_hand_bounding_box(image, hand_landmarks):
+     image_height, image_width, _ = image.shape
+     x_min, y_min = image_width, image_height
+     x_max, y_max = 0, 0
+
+     for landmark in hand_landmarks.landmark:
+          x, y = int(landmark.x * image_width), int(landmark.y * image_height)
+          x_min = min(x_min, x)
+          y_min = min(y_min, y)
+          x_max = max(x_max, x)
+          y_max = max(y_max, y)
+
+     cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 0, 255), 2)  # Red color
+
+def save_image_and_annotations(image_count, frame, rois):
+     image_name = f"image_{image_count:04d}.jpg"
+     cv2.imwrite(image_name, frame)
+    
+     if len(rois) > 0:
+          annotations = []
+          for roi in rois:
+               x_min, y_min, w, h = [int(v) for v in roi['bbox']]
+               annotations.append({
+                    "label": roi['label'],  # Save the label
+                    "bbox": [x_min, y_min, x_min + w, y_min + h]
+               })
+          annotation_data["images"].append({
+               "file": image_name,
+               "annotations": annotations
+          })
+          with open("labels.json", "w") as f:
+               json.dump(annotation_data, f, indent=4)
+
+def get_label_color(label):
+     if label not in label_colors:
+          label_colors[label] = [random.randint(0, 255) for _ in range(3)]
+     return label_colors[label]
 
 def camera_start():
     global trackers, rois, tracking
     cap1 = cv2.VideoCapture('/dev/video5')
     width = cap1.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap1.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    image_count = 0
     print('cap1 size: %d, %d' % (width, height))
     if not cap1.isOpened():
         sys.exit()
@@ -45,17 +93,17 @@ def camera_start():
         ret1, frame1 = cap1.read()        
         if not ret1:
             break
-
         # frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-        filtered_img = add_image_filter(frame1)
-
-        rotate_img = Rotate(filtered_img, 0)
-        rotate_img = cv2.resize(rotate_img, (960, 540))
+        # frame1 = add_image_filter(frame1)
+        rotate_img = Rotate(frame1, 0)
+        # rotate_img = cv2.resize(rotate_img, (960, 540))
+    
         draw_img = rotate_img.copy()
 
         if tracking:
             success, boxes = trackers.update(draw_img)
             for i, newbox in enumerate(boxes):
+                rois[i]['bbox'] = newbox  # Update rois with new bounding box
                 p1 = (int(newbox[0]), int(newbox[1]))
                 p2 = (int(newbox[0] + newbox[2]), int(newbox[1] + newbox[3]))
                 label = rois[i]['label']
@@ -63,7 +111,7 @@ def camera_start():
                 cv2.rectangle(draw_img, p1, p2, color, 2, 1)
                 cv2.putText(draw_img, label, (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-        KEY = cv2.waitKey(1) & 0xFF
+        KEY = cv2.waitKey(CAM_DELAY) & 0xFF
         if KEY == 27:  # Esc pressed
             break
         elif KEY == ord('t'):  # 't' pressed, select ROIs
@@ -88,7 +136,6 @@ def camera_start():
             tracking = False
 
         cv2.imshow("video", draw_img)
-        cv2.waitKey(CAM_DELAY)
         image_count += 1
 
     cap1.release()

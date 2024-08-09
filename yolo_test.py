@@ -115,7 +115,7 @@ def camera_start(model_path):
     if system == "Windows":
         cap1 = cv2.VideoCapture(0)
     else:
-        cap1 = cv2.VideoCapture('/dev/video0')
+        cap1 = cv2.VideoCapture('/dev/video5')
 
     width = cap1.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap1.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -158,7 +158,7 @@ def camera_start(model_path):
 
             # FHD 이미지를 HD로 변환
             
-            results = model.predict(rotate_img_color, imgsz=[960, 544], verbose=False)
+            results = model.predict(rotate_img_color, imgsz=[960, 544], verbose=True)
 
             ret_array = []
             for result in results:
