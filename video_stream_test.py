@@ -1,4 +1,5 @@
 import cv2
+print(cv2.__version__)
 from yolo_test import *
 from image_filter import *
 
@@ -16,8 +17,8 @@ if not cap.isOpened():
 
 # 적용할 필터 리스트
 filters = [
-    apply_grayscale,
-    lambda img: apply_darken(img, intensity=0.2)  # 어둡게 하는 필터를 적용
+    # apply_grayscale,
+    # lambda img: apply_darken(img, intensity=1.0)
 ]
 
 while True:
@@ -30,16 +31,16 @@ while True:
     frame = apply_custom_filter(frame, filters)
     
     # 3 channel data increasing TEST
-    frame_2 = equalizeHistogram(frame)
+    # frame_2 = equalizeHistogram(frame)
     # frame_3 = addFilters_on_channel(frame)
-    frame_4 = sobel_filter(frame_2)
+    # frame_4 = sobel_filter(frame)
     
     
     cv2.imshow('Filtered image', frame)
     
-    cv2.imshow('TEST image 2', frame_2)
+    # cv2.imshow('TEST image 2', frame_2)
     # cv2.imshow('TEST image 3', frame_3)
-    cv2.imshow('TEST image 4', frame_4)
+    # cv2.imshow('TEST image 4', frame_4)
     
     KEY = cv2.waitKey(1) & 0xFF
     image_count += 1

@@ -8,10 +8,9 @@ import cv2
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from image_filters import *
+from image_filter import *
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-
 
 def convert_to_yolo_format(label_file, output_dir, img_width, img_height):
     with open(label_file, 'r') as f:
@@ -39,61 +38,87 @@ def convert_to_yolo_format(label_file, output_dir, img_width, img_height):
 
 def prepare_dataset(image_dir, label_dir, output_dir, labeling,
                     img_width, img_height, new_width, new_height):
-     img_output_dir = os.path.join(output_dir, 'images')
-     lbl_output_dir = os.path.join(output_dir, 'labels')
-     os.makedirs(img_output_dir, exist_ok=True)
-     os.makedirs(lbl_output_dir, exist_ok=True)
-     image_files = sorted(glob.glob(f"{image_dir}/*.jpg"))
+    img_output_dir = os.path.join(output_dir, 'images')
+    lbl_output_dir = os.path.join(output_dir, 'labels')
+    os.makedirs(img_output_dir, exist_ok=True)
+    os.makedirs(lbl_output_dir, exist_ok=True)
+    image_files = sorted(glob.glob(f"{image_dir}/*.jpg"))
 
-     darkness_filters = [
-          lambda img: apply_darken(img, intensity=0.1),
-          lambda img: apply_darken(img, intensity=0.3),
-          lambda img: apply_darken(img, intensity=0.5),
-     ]
-     
-     filters = [
-          lambda img: apply_darken(img, intensity=0.2),
-          lambda img: apply_darken(img, intensity=0.5),
-          lambda img: apply_brightness(img, factor=1.3),
-          lambda img: apply_noise(img, noise_level=0.008),
-          lambda img: apply_blur(img, ksize=5)
-     ]
+    darkness_filters = [
+        lambda img: apply_darken(img, intensity=0.1),
+        lambda img: apply_darken(img, intensity=0.3),
+        lambda img: apply_darken(img, intensity=0.5),
+    ]
 
-     for img_path in image_files:
-          detect_status = False
-          for labeling_data in labeling:
-               if labeling_data in img_path:
-                    detect_status = True
-                    break
+    filters = [
+        lambda img: apply_darken(img, intensity=0.2),
+        lambda img: apply_darken(img, intensity=0.5),
+        lambda img: apply_brightness(img, factor=1.3),
+        lambda img: apply_noise(img, noise_level=0.008),
+        lambda img: apply_blur(img, ksize=5)
+    ]
 
-          if detect_status:
-               img = cv2.imread(img_path)
-               resized_img = cv2.resize(img, (new_width, new_height))
-               img_gray = apply_grayscale(resized_img)
-               img_output_path = os.path.join(img_output_dir, os.path.basename(img_path))
+    for img_path in image_files:
+        detect_status = False
+        for labeling_data in labeling:
+            if labeling_data in img_path:
+                detect_status = True
+                break
 
-               lbl_path = os.path.splitext(os.path.basename(img_path))[0] + '.txt'
-               src_lbl_path = os.path.join(label_dir, lbl_path)
-               dst_lbl_path = os.path.join(lbl_output_dir, lbl_path)
+        #   if detect_status:
+        #        img = cv2.imread(img_path)
+        #        resized_img = cv2.resize(img, (new_width, new_height))
+        #        img_gray = apply_grayscale(resized_img)
+        #        img_output_path = os.path.join(img_output_dir, os.path.basename(img_path))
 
-               # cv2.imwrite(img_output_path, img_gray)
-               # if src_lbl_path != dst_lbl_path and os.path.exists(src_lbl_path):
-               #      shutil.copy(src_lbl_path, dst_lbl_path)
+        #        lbl_path = os.path.splitext(os.path.basename(img_path))[0] + '.txt'
+        #        src_lbl_path = os.path.join(label_dir, lbl_path)
+        #        dst_lbl_path = os.path.join(lbl_output_dir, lbl_path)
 
-               # 필터를 적용하여 이미지 증강 및 라벨 파일 복사
-               for i, filter_func in enumerate(darkness_filters):
-                    filtered_img = apply_custom_filter(img_gray.copy(), [filter_func])
-                    filtered_img_output_path = os.path.join(img_output_dir, f"{os.path.splitext(os.path.basename(img_path))[0]}_aug_{i}.jpg")
+        #        # cv2.imwrite(img_output_path, img_gray)
+        #        # if src_lbl_path != dst_lbl_path and os.path.exists(src_lbl_path):
+        #        #      shutil.copy(src_lbl_path, dst_lbl_path)
+
+        #        # 필터를 적용하여 이미지 증강 및 라벨 파일 복사
+        #        for i, filter_func in enumerate(darkness_filters):
+        #             filtered_img = apply_custom_filter(img_gray.copy(), [filter_func])
+        #             filtered_img_output_path = os.path.join(img_output_dir, f"{os.path.splitext(os.path.basename(img_path))[0]}_aug_{i}.jpg")
                     
-                    # add 3 channel filter
-                    filtered_img_ch_increase = sobel_filter(filtered_img)                    
-                    cv2.imwrite(filtered_img_output_path, filtered_img_ch_increase)
+        #             # add 3 channel filter
+        #             filtered_img_ch_increase = sobel_filter(filtered_img)                    
+        #             cv2.imwrite(filtered_img_output_path, filtered_img_ch_increase)
                     
-                    aug_lbl_path = os.path.join(lbl_output_dir, f"{os.path.splitext(os.path.basename(filtered_img_output_path))[0]}.txt")
+        #             aug_lbl_path = os.path.join(lbl_output_dir, f"{os.path.splitext(os.path.basename(filtered_img_output_path))[0]}.txt")
 
-                    # 증강된 이미지에 대한 라벨 파일 생성
-                    if os.path.exists(src_lbl_path):
-                         shutil.copy(src_lbl_path, aug_lbl_path)
+        #             # 증강된 이미지에 대한 라벨 파일 생성
+        #             if os.path.exists(src_lbl_path):
+        #                  shutil.copy(src_lbl_path, aug_lbl_path)
+
+
+
+        if detect_status:
+            img = cv2.imread(img_path)
+            resized_img = cv2.resize(img, (new_width, new_height))
+            resized_img = apply_grayscale(resized_img)
+            img_output_path = os.path.join(img_output_dir, os.path.basename(img_path))
+            cv2.imwrite(img_output_path, resized_img)
+
+            lbl_path = os.path.splitext(os.path.basename(img_path))[0] + '.txt'
+            src_lbl_path = os.path.join(label_dir, lbl_path)
+            dst_lbl_path = os.path.join(lbl_output_dir, lbl_path)
+
+            if src_lbl_path != dst_lbl_path:
+                with open(src_lbl_path, 'r') as lf:
+                    lines = lf.readlines()
+                with open(dst_lbl_path, 'w') as lf:
+                    for line in lines:
+                        label, x_center, y_center, width, height = map(float, line.strip().split())
+                        
+                        x_center = x_center * new_width / img_width
+                        y_center = y_center * new_height / img_height
+                        width = width * new_width / img_width
+                        height = height * new_height / img_height
+                        lf.write(f"{label} {x_center} {y_center} {width} {height}\n")
 
 
 def merge_datasets(dataset_dirs, output_dir, img_width, img_height, new_width, new_height):
@@ -217,4 +242,4 @@ if __name__ == "__main__":
     else:
         print("Using CPU")
 
-    train_yolo_model(os.path.join(split_output_dir, "data.yaml"),  model_path='yolov10n.pt', epochs=50, batch_size=2, learning_rate=0.001, img_size=(new_width, new_height))
+    train_yolo_model(os.path.join(split_output_dir, "data.yaml"),  model_path='yolov10s.pt', epochs=50, batch_size=2, learning_rate=0.001, img_size=(new_width, new_height))

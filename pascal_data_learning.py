@@ -10,8 +10,7 @@ from torchvision import transforms
 from ultralytics import YOLO
 
 # yolo_v10_learning.py에서 필요한 필터 함수들 임포트
-from image_filters import *
-
+from image_filter import *
 
 # 적용할 필터 리스트
 filters = [
@@ -56,34 +55,6 @@ class VOCDataset(Dataset):
         return image, boxes, labels
 
 
-def train_yolo_model(data_yaml, model_path, epochs=50, batch_size=16, learning_rate=0.001, img_size=(640, 640)):
-     model = YOLO(model_path)
-
-     print(f"Training YOLO model with the following configuration:")
-     print(f"Data: {data_yaml}")
-     print(f"Model: {model_path}")
-     print(f"Epochs: {epochs}")
-     print(f"Batch size: {batch_size}")
-     print(f"Learning rate: {learning_rate}")
-     print(f"Image size: {img_size}")
-
-     model.train(
-          data=data_yaml,
-          epochs=epochs,
-          batch=batch_size,
-          imgsz=img_size,
-          lr0=learning_rate,
-          optimizer='AdamW',
-          conf=0.1  # Confidence threshold를 낮게 설정하여 더 많은 예측을 수집
-     )
-
-     # 결과 모델 저장 경로
-     # result_model_dir = os.path.join(script_dir, "result_model")
-     # os.makedirs(result_model_dir, exist_ok=True)
-     # model_save_path = os.path.join(result_model_dir, "best.pt")
-     # model.save(model_save_path)    
-
-#     os.system(f"python train.py --img {img_size[0]} --batch {batch_size} --epochs {epochs} --data {data_yaml} --weights {model_path} --lr {learning_rate}")
 
 # 필터를 적용한 이미지를 저장하는 함수 (train, val, test로 분할)
 def save_filtered_images(data_path, output_path, apply_filter=None, train_ratio=0.7, val_ratio=0.2):
@@ -129,7 +100,29 @@ def save_filtered_images(data_path, output_path, apply_filter=None, train_ratio=
                if os.path.exists(annotation_path):
                     shutil.copy(annotation_path, split_annotation_dir)
 
-# 데이터셋 준비 및 학습 파이프라인
+
+def train_yolo_model(data_yaml, model_path, epochs=50, batch_size=16, learning_rate=0.001, img_size=(640, 640)):
+     model = YOLO(model_path)
+
+     print(f"Training YOLO model with the following configuration:")
+     print(f"Data: {data_yaml}")
+     print(f"Model: {model_path}")
+     print(f"Epochs: {epochs}")
+     print(f"Batch size: {batch_size}")
+     print(f"Learning rate: {learning_rate}")
+     print(f"Image size: {img_size}")
+
+     model.train(
+          data=data_yaml,
+          epochs=epochs,
+          batch=batch_size,
+          imgsz=img_size,
+          lr0=learning_rate,
+          optimizer='AdamW',
+          conf=0.1  # Confidence threshold를 낮게 설정하여 더 많은 예측을 수집
+     )
+
+
 def main():
      data_path = os.path.abspath('../pascal_voc/VOCdevkit/VOC2012')  # Pascal VOC 데이터셋 경로를 절대 경로로 설정
      output_path = os.path.abspath('../pascal_voc/filtered_dataset')  # 필터링된 데이터셋 경로를 절대 경로로 설정
@@ -165,7 +158,7 @@ def main():
           print("Using CPU")
 
      # YOLO 모델 학습
-     train_yolo_model(os.path.join(output_path, "data.yaml"), model_path='yolov10n.pt', epochs=50, batch_size=2, learning_rate=0.001, img_size=(640, 640))
+     train_yolo_model(os.path.join(output_path, "data.yaml"), model_path='yolov10s.pt', epochs=50, batch_size=2, learning_rate=0.001, img_size=(640, 640))
 
 if __name__ == '__main__':
      main()

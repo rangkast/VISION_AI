@@ -1,6 +1,7 @@
 
 import cv2
 import numpy as np
+import os
 
 class ImageFilter:
     def __init__(self, name):
@@ -78,7 +79,6 @@ def add_image_filter(image):
     return filtered_image
 
 
-
 filter_index = None
 def set_curr_filter(data):
     global filter_index
@@ -90,28 +90,40 @@ def get_curr_filter():
 
 
 
-
+# 필터 적용 함수들 정의
 def apply_grayscale(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 def apply_darken(image, intensity=0.5):
-    # intensity 값은 0.0 (아주 어둡게)에서 1.0 (변화 없음) 사이로 설정
     darkened_image = image * intensity
     darkened_image = np.clip(darkened_image, 0, 255).astype(np.uint8)
     return darkened_image
 
 def apply_custom_filter(image, filters):
-    # filters는 적용할 필터 함수들의 리스트
     for filter_func in filters:
         image = filter_func(image)
     return image
+
+def apply_brightness(image, factor=1.0):
+    brightened_image = cv2.convertScaleAbs(image, alpha=factor, beta=0)
+    return brightened_image
+
+def apply_noise(image, noise_level=0.1):
+    noise = np.random.randn(*image.shape) * 255 * noise_level
+    noisy_image = image + noise.astype(np.uint8)
+    noisy_image = np.clip(noisy_image, 0, 255)
+    return noisy_image
+
+def apply_blur(image, ksize=5):
+    blurred_image = cv2.GaussianBlur(image, (ksize, ksize), 0)
+    return blurred_image
 
 def equalizeHistogram(image):
     # 히스토그램 평활화 적용
     equalized_image = cv2.equalizeHist(image)
     # 히스토그램 평활화 결과를 BGR로 변환
-    # bgr_image = cv2.cvtColor(equalized_image, cv2.COLOR_GRAY2BGR)
-    return equalized_image
+    bgr_image = cv2.cvtColor(equalized_image, cv2.COLOR_GRAY2BGR)
+    return bgr_image
 
 def addFilters_on_channel(image):
     # 다양한 필터 적용
@@ -124,11 +136,38 @@ def addFilters_on_channel(image):
 
 def sobel_filter(image):
     # Sobel 필터 적용
-    sobelx = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)  # X축 경계
-    sobely = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)  # Y축 경계
+    sobelx = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=5)  # X축 경계
+    sobely = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=5)  # Y축 경계
     # 값을 절대값으로 변환하고 정규화
     sobelx = cv2.convertScaleAbs(sobelx)
     sobely = cv2.convertScaleAbs(sobely)
     # B, G, R 채널로 합치기
     bgr_image = cv2.merge([image, sobelx, sobely])
     return bgr_image
+
+
+def apply_filters_to_images(image_dir, filters):
+    """
+    주어진 경로의 모든 이미지에 필터를 적용하고, 동일 경로에 저장하는 함수
+    
+    Args:
+        image_dir (str): 이미지가 저장된 디렉토리 경로
+        filters (list): 이미지에 적용할 필터 함수들의 리스트
+    """
+    # 이미지 디렉토리 내의 모든 파일을 가져옴
+    image_files = [f for f in os.listdir(image_dir) if f.endswith(('.jpg', '.png'))]
+
+    for image_file in image_files:
+        image_path = os.path.join(image_dir, image_file)
+        image = cv2.imread(image_path)
+
+        if image is None:
+            print(f"이미지를 로드할 수 없습니다: {image_path}")
+            continue
+
+        # 필터 적용
+        filtered_image = apply_custom_filter(image, filters)
+
+        # 필터가 적용된 이미지를 원래 경로에 저장
+        cv2.imwrite(image_path, filtered_image)
+        # print(f"필터가 적용된 이미지를 저장했습니다: {image_path}")

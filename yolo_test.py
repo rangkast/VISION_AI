@@ -156,8 +156,7 @@ def camera_start(model_path):
             rotate_img_color = cv2.cvtColor(roate_img_gray, cv2.COLOR_GRAY2BGR)
 
 
-            # FHD 이미지를 HD로 변환
-            
+            # FHD 이미지를 HD로 변환            
             results = model.predict(rotate_img_color, imgsz=[960, 544], verbose=True)
 
             ret_array = []

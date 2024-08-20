@@ -9,18 +9,24 @@ from image_filter import *
 from ultralytics import YOLO
 import platform
 
+'''
+실제 비디오 프레임에서 yolo model을 테스트하여
+객체 감지 실행하여 블롭박스와 라벨데이터 보여줌
+
+'''
 
 from image_filter import *
 
 # YOLOv8 모델 로드
-model = YOLO('../yolo_learning/runs/detect/train17/weights/best.pt')
+# model = YOLO('../yolo_learning/runs/detect/train17/weights/best.pt')
+model = YOLO('./best.pt')
 video_path = '/dev/video5'
 img_sizes = [480, 640]
 
 # 적용할 필터 리스트
 filters = [
     apply_grayscale,
-    lambda img: apply_darken(img, intensity=0.2)  # 어둡게 하는 필터를 적용
+    lambda img: apply_darken(img, intensity=0.2),  # 어둡게 하는 필터를 적용
 ]
 
 

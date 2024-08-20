@@ -1,0 +1,10 @@
+__pycache__/**
+result_model/**
+runs/**
+wandb/**
+
+*.png
+*.xml
+*.csv
+*.yaml
+*.jpg
