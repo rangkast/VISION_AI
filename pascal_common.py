@@ -61,7 +61,7 @@ def copy_files(files, source_dir, target_dir, file_ext):
     for f in files:
         shutil.copy(os.path.join(source_dir, f + file_ext), os.path.join(target_dir, f + file_ext))
 
-def dataset_copy_and_convert(base_dir, split_base, split_ratio):
+def dataset_copy_and_convert(base_dir, split_base, split_ratio, do_random=True):
     train_images_dir = os.path.join(split_base, 'images/train')
     val_images_dir = os.path.join(split_base, 'images/val')
     train_labels_dir = os.path.join(split_base, 'labels/train')
@@ -76,7 +76,8 @@ def dataset_copy_and_convert(base_dir, split_base, split_ratio):
     os.makedirs(val_labels_dir, exist_ok=True)
 
     trainval_files = get_files_from_split(os.path.join(sets_dir, 'trainval.txt'))
-    np.random.shuffle(trainval_files)
+    if do_random:
+        np.random.shuffle(trainval_files)
 
     split_index = int(len(trainval_files) * split_ratio)
     train_files = trainval_files[:split_index]

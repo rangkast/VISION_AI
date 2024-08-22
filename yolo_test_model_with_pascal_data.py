@@ -96,7 +96,7 @@ def show_images_with_boxes(model, image_dir, num_images_to_show=5):
 def main():
     # login_wandb(api_key_file)
 
-    dataset_copy_and_convert(base_dir, split_base, split_ratio=0.5)
+    dataset_copy_and_convert(base_dir, split_base, split_ratio=0.5, do_random=False)
 
     yaml_path = create_data_yaml(split_base,
                                  os.path.join(split_base, 'images/train'),

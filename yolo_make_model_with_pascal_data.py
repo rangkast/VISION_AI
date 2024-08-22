@@ -13,8 +13,8 @@ split_base = os.path.abspath('../pascal_voc/yolo_dataset_2012')
 filters = [
     apply_grayscale,
     lambda img: apply_darken(img, intensity=0.2),  # 어둡게 하는 필터를 적용
-    # lambda img: sobel_filter(img),
-    lambda img: equalizeHistogram(img),
+    lambda img: sobel_filter(img),
+    # lambda img: equalizeHistogram(img),
 ]
 
 def train_yolo_model(data_yaml, model_path, epochs=50, batch_size=16, learning_rate=0.001, img_size=(640, 640)):
@@ -39,7 +39,7 @@ def train_yolo_model(data_yaml, model_path, epochs=50, batch_size=16, learning_r
      )
 
 if __name__ == '__main__':
-    dataset_copy_and_convert(base_dir, split_base, split_ratio=0.9)
+    dataset_copy_and_convert(base_dir, split_base, split_ratio=0.9, do_random=False)
 
     yaml_path = create_data_yaml(split_base,
                                  os.path.join(split_base, 'images/train'),

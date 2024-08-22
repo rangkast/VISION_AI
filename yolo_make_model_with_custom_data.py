@@ -242,4 +242,4 @@ if __name__ == "__main__":
     else:
         print("Using CPU")
 
-    train_yolo_model(os.path.join(split_output_dir, "data.yaml"),  model_path='yolov10s.pt', epochs=50, batch_size=2, learning_rate=0.001, img_size=(new_width, new_height))
+    train_yolo_model(os.path.join(split_output_dir, "data.yaml"),  model_path='yolov10s.pt', epochs=10, batch_size=2, learning_rate=0.001, img_size=(new_width, new_height))
